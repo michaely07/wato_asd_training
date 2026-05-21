@@ -2,7 +2,7 @@
 
 CostmapNode::CostmapNode() : Node("costmap"), costmap_(robot::CostmapCore(this->get_logger()))
 {
-  costmap_.initCostmap(0.1, 200, 200, -10.0, -10.0);
+  costmap_.initCostmap();
 
   lidar_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
     "/lidar", 10,
