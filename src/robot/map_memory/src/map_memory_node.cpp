@@ -21,10 +21,10 @@ MapMemoryNode::MapMemoryNode()
     std::bind(&MapMemoryNode::timerCallback, this));
 
   constexpr float  resolution = 0.1f;
-  constexpr int    width      = 100;
-  constexpr int    height     = 100;
-  constexpr double origin_x   = -5.0;
-  constexpr double origin_y   = -5.0;
+  constexpr int    width      = 1000;
+  constexpr int    height     = 1000;
+  constexpr double origin_x   = -50.0;
+  constexpr double origin_y   = -50.0;
 
   global_map_.header.frame_id = "odom";
   global_map_.info.resolution = resolution;
