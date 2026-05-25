@@ -26,7 +26,7 @@ MapMemoryNode::MapMemoryNode()
   constexpr double origin_x   = -50.0;
   constexpr double origin_y   = -50.0;
 
-  global_map_.header.frame_id = "odom";
+  global_map_.header.frame_id = "sim_world";
   global_map_.info.resolution = resolution;
   global_map_.info.width      = width;
   global_map_.info.height     = height;
@@ -61,7 +61,7 @@ void MapMemoryNode::timerCallback()
 
   double dx   = current_x_ - last_update_x_;
   double dy   = current_y_ - last_update_y_;
-  bool moved  = std::sqrt(dx * dx + dy * dy) >= 1.5;
+  bool moved  = std::sqrt(dx * dx + dy * dy) >= 0.5;
 
   if (first_update_ || moved) {
     map_memory_.updateMap(

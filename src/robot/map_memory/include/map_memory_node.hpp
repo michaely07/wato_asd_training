@@ -30,7 +30,7 @@ class MapMemoryNode : public rclcpp::Node {
     double current_yaw_{0.0};
     double last_update_x_{0.0};
     double last_update_y_{0.0};
-
+  
     bool has_odom_{false};
     bool has_costmap_{false};
     bool first_update_{true};

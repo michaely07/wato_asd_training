@@ -17,7 +17,7 @@ void CostmapNode::laserCallback(const sensor_msgs::msg::LaserScan::SharedPtr sca
 
   std_msgs::msg::Header header;
   header.stamp    = this->get_clock()->now();
-  header.frame_id = "map";
+  header.frame_id = "robot/chassis/lidar";
 
   auto grid_msg = costmap_.getOccupancyGrid(header);
   costmap_pub_->publish(grid_msg);

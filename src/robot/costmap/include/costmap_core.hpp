@@ -23,9 +23,9 @@ class CostmapCore {
   private:
     rclcpp::Logger logger_;
 
-    double resolution_ = 0.1;
-    int width_ = 100;
-    int height_ = 100;
+    double resolution_ = 0.05;  // finer than global map (0.1) to avoid holes when projecting
+    int width_ = 200;
+    int height_ = 200;
     double origin_x_ = -5.0;
     double origin_y_ = -5.0;
     double inflation_radius_ = 1.0;

@@ -34,7 +34,15 @@ void PlannerNode::goalCallback(const geometry_msgs::msg::PointStamped::SharedPtr
   goal_ = *msg;
   has_goal_ = true;
   state_ = State::WAITING_FOR_ROBOT_TO_REACH_GOAL;
-  RCLCPP_INFO(this->get_logger(), "New goal received: (%.2f, %.2f)", goal_.point.x, goal_.point.y);
+
+  if (has_map_ && msg->header.frame_id != current_map_->header.frame_id) {
+    RCLCPP_WARN(this->get_logger(),
+      "Goal frame '%s' does not match map frame '%s'. Goal coordinates will be treated as map frame.",
+      msg->header.frame_id.c_str(), current_map_->header.frame_id.c_str());
+  }
+
+  RCLCPP_INFO(this->get_logger(), "New goal received: (%.2f, %.2f) in frame '%s'",
+    goal_.point.x, goal_.point.y, goal_.header.frame_id.c_str());
   planPath();
 }
 

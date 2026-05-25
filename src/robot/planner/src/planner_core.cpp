@@ -25,7 +25,7 @@ bool PlannerCore::inBounds(const nav_msgs::msg::OccupancyGrid& map, const CellIn
 bool PlannerCore::isObstacle(const nav_msgs::msg::OccupancyGrid& map, const CellIndex& idx) const
 {
   int8_t val = map.data[static_cast<size_t>(idx.y) * map.info.width + static_cast<size_t>(idx.x)];
-  return val > 50 || val < 0;
+  return val > 50;
 }
 
 double PlannerCore::heuristic(const CellIndex& a, const CellIndex& b) const
@@ -55,7 +55,7 @@ nav_msgs::msg::Path PlannerCore::planPath(
   double goal_x, double goal_y)
 {
   nav_msgs::msg::Path path;
-  path.header.frame_id = "odom";
+  path.header.frame_id = map.header.frame_id;
 
   CellIndex start = worldToGrid(map, start_x, start_y);
   CellIndex goal  = worldToGrid(map, goal_x, goal_y);
@@ -65,7 +65,7 @@ nav_msgs::msg::Path PlannerCore::planPath(
     return path;
   }
   if (isObstacle(map, goal)) {
-    RCLCPP_WARN(logger_, "Goal cell is occupied or unknown");
+    RCLCPP_WARN(logger_, "Goal cell is occupied");
     return path;
   }
 
@@ -128,7 +128,7 @@ nav_msgs::msg::Path PlannerCore::planPath(
 
   for (const auto& cell : cell_path) {
     geometry_msgs::msg::PoseStamped pose;
-    pose.header.frame_id = "odom";
+    pose.header.frame_id = map.header.frame_id;
     pose.pose.position.x = ox + (cell.x + 0.5) * res;
     pose.pose.position.y = oy + (cell.y + 0.5) * res;
     pose.pose.orientation.w = 1.0;
