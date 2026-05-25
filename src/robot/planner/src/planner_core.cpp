@@ -25,7 +25,7 @@ bool PlannerCore::inBounds(const nav_msgs::msg::OccupancyGrid& map, const CellIn
 bool PlannerCore::isObstacle(const nav_msgs::msg::OccupancyGrid& map, const CellIndex& idx) const
 {
   int8_t val = map.data[static_cast<size_t>(idx.y) * map.info.width + static_cast<size_t>(idx.x)];
-  return val > 50;
+  return val > 20;
 }
 
 double PlannerCore::heuristic(const CellIndex& a, const CellIndex& b) const
@@ -65,8 +65,43 @@ nav_msgs::msg::Path PlannerCore::planPath(
     return path;
   }
   if (isObstacle(map, goal)) {
-    RCLCPP_WARN(logger_, "Goal cell is occupied");
-    return path;
+    bool snapped = false;
+    for (int r = 1; r <= 20 && !snapped; ++r) {
+      for (int dx = -r; dx <= r && !snapped; ++dx) {
+        for (int dy = -r; dy <= r && !snapped; ++dy) {
+          if (std::abs(dx) < r && std::abs(dy) < r) continue;
+          CellIndex c(goal.x + dx, goal.y + dy);
+          if (inBounds(map, c) && !isObstacle(map, c)) {
+            goal = c;
+            snapped = true;
+          }
+        }
+      }
+    }
+    if (!snapped) {
+      RCLCPP_WARN(logger_, "Goal is in an obstacle zone with no free cells nearby");
+      return path;
+    }
+  }
+
+  if (isObstacle(map, start)) {
+    bool escaped = false;
+    for (int r = 1; r <= 20 && !escaped; ++r) {
+      for (int dx = -r; dx <= r && !escaped; ++dx) {
+        for (int dy = -r; dy <= r && !escaped; ++dy) {
+          if (std::abs(dx) < r && std::abs(dy) < r) continue;
+          CellIndex c(start.x + dx, start.y + dy);
+          if (inBounds(map, c) && !isObstacle(map, c)) {
+            start = c;
+            escaped = true;
+          }
+        }
+      }
+    }
+    if (!escaped) {
+      RCLCPP_WARN(logger_, "Robot is trapped; no free cell found nearby");
+      return path;
+    }
   }
 
   using OpenSet = std::priority_queue<AStarNode, std::vector<AStarNode>, CompareF>;

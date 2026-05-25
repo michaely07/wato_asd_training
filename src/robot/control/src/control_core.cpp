@@ -1,5 +1,6 @@
 #include "control_core.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 
@@ -8,9 +9,9 @@ namespace robot
 
 ControlCore::ControlCore(const rclcpp::Logger& logger)
   : logger_(logger),
-    lookahead_distance_(1.0),
+    lookahead_distance_(1.5),
     goal_tolerance_(0.1),
-    linear_speed_(0.5) {}
+    linear_speed_(1.0) {}
 
 std::optional<geometry_msgs::msg::PoseStamped> ControlCore::findLookaheadPoint(
     const nav_msgs::msg::Path& path,
@@ -63,8 +64,9 @@ geometry_msgs::msg::Twist ControlCore::computeVelocity(
 
   double curvature = 2.0 * std::sin(alpha) / L;
 
-  cmd_vel.linear.x = linear_speed_;
-  cmd_vel.angular.z = linear_speed_ * curvature;
+  // Slow down proportionally for sharp turns; minimum 0.2 of normal speed to avoid stalling
+  cmd_vel.linear.x = linear_speed_ * std::max(0.2, std::cos(alpha));
+  cmd_vel.angular.z = std::clamp(linear_speed_ * curvature, -2.0, 2.0);
 
   return cmd_vel;
 }
