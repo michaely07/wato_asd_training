@@ -47,11 +47,6 @@ void MapMemoryNode::odomCallback(const nav_msgs::msg::Odometry::SharedPtr msg)
   current_x_ = msg->pose.pose.position.x;
   current_y_ = msg->pose.pose.position.y;
 
-  const auto& q = msg->pose.pose.orientation;
-  double siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
-  double cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
-  current_yaw_ = std::atan2(siny_cosp, cosy_cosp);
-
   has_odom_ = true;
 }
 
@@ -64,9 +59,7 @@ void MapMemoryNode::timerCallback()
   bool moved  = std::sqrt(dx * dx + dy * dy) >= 0.5;
 
   if (first_update_ || moved) {
-    map_memory_.updateMap(
-      global_map_, *latest_costmap_,
-      current_x_, current_y_, current_yaw_);
+    map_memory_.updateMap(global_map_, *latest_costmap_);
     last_update_x_ = current_x_;
     last_update_y_ = current_y_;
     first_update_  = false;

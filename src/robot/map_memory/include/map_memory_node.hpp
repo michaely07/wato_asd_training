@@ -27,7 +27,6 @@ class MapMemoryNode : public rclcpp::Node {
 
     double current_x_{0.0};
     double current_y_{0.0};
-    double current_yaw_{0.0};
     double last_update_x_{0.0};
     double last_update_y_{0.0};
   

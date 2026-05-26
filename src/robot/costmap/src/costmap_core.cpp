@@ -16,8 +16,12 @@ void CostmapCore::initCostmap()
   grid_.assign(height_, std::vector<int8_t>(width_, freespace));
 }
 
-void CostmapCore::updateCostmap(const sensor_msgs::msg::LaserScan::SharedPtr& scan)
+void CostmapCore::updateCostmap(const sensor_msgs::msg::LaserScan::SharedPtr& scan,
+                                 double robot_x, double robot_y, double robot_yaw)
 {
+  robot_x_   = robot_x;
+  robot_y_   = robot_y;
+  robot_yaw_ = robot_yaw;
   initCostmap();
 
   std::vector<std::pair<int,int>> obstacle_cells;
@@ -42,11 +46,20 @@ void CostmapCore::updateCostmap(const sensor_msgs::msg::LaserScan::SharedPtr& sc
 
 bool CostmapCore::convertGrid(double range, double angle, int& x_index, int& y_index)
 {
-  double x_cartesian = range * std::cos(angle);
-  double y_cartesian = range * std::sin(angle);
+  // Hit in lidar frame
+  double local_x = range * std::cos(angle);
+  double local_y = range * std::sin(angle);
 
-  x_index = static_cast<int>((x_cartesian - origin_x_) / resolution_);
-  y_index = static_cast<int>((y_cartesian - origin_y_) / resolution_);
+  // Rotate into world-aligned axes (robot_yaw_ = lidar heading in sim_world).
+  // This keeps grid columns/rows parallel to the world axes regardless of
+  // robot orientation, so the published grid never appears to spin.
+  double dx = local_x * std::cos(robot_yaw_) - local_y * std::sin(robot_yaw_);
+  double dy = local_x * std::sin(robot_yaw_) + local_y * std::cos(robot_yaw_);
+
+  // Grid origin is at (robot + origin_offset) in world space.
+  // robot terms cancel: x_index = (robot_x + dx - (robot_x + origin_x_)) / res
+  x_index = static_cast<int>((dx - origin_x_) / resolution_);
+  y_index = static_cast<int>((dy - origin_y_) / resolution_);
 
   return (x_index >= 0 && x_index < width_) && (y_index >= 0 && y_index < height_);
 }
@@ -92,8 +105,8 @@ nav_msgs::msg::OccupancyGrid CostmapCore::getOccupancyGrid(const std_msgs::msg::
   msg.info.resolution = static_cast<float>(resolution_);
   msg.info.width = static_cast<uint32_t>(width_);
   msg.info.height = static_cast<uint32_t>(height_);
-  msg.info.origin.position.x = origin_x_;
-  msg.info.origin.position.y = origin_y_;
+  msg.info.origin.position.x = robot_x_ + origin_x_;
+  msg.info.origin.position.y = robot_y_ + origin_y_;
   msg.info.origin.orientation.w = 1.0;
   msg.data.reserve(width_ * height_);
   for (const auto& row : grid_) {
