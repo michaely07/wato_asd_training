@@ -9,7 +9,7 @@ namespace robot
 
 ControlCore::ControlCore(const rclcpp::Logger& logger)
   : logger_(logger),
-    lookahead_distance_(1.5),
+    lookahead_distance_(0.8),
     goal_tolerance_(0.1),
     linear_speed_(1.0) {}
 
